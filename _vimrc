@@ -52,7 +52,7 @@ set mouse=a                     " Включаем мышь в любом реж
 " 6. Undo и временные файлы
 " -----------------------------
 set undofile                    " Включаем persistent undo (можно отменять после закрытия)
-set undodir=~/.local/share/nvim/undo // Папка для файлов undo
+set undodir=~/.local/share/nvim/undo "// Папка для файлов undo
 set nobackup                     " Не сохранять резервные копии
 set nowritebackup                " Не сохранять резервные копии при записи
 set noswapfile                   " Не использовать swap файлы
@@ -111,6 +111,9 @@ Plug 'sheerun/vim-polyglot'              " Поддержка сотен язы�
 " Автодополнение (C, C++, Python, JS)
 Plug 'neoclide/coc.nvim', {'branch': 'release'}  " Intellisense/autocomplete через CoC
 
+"emmet
+Plug 'mattn/emmet-vim'
+
 " -----------------------------
 " 9b. Завершаем блок плагинов
 " -----------------------------
@@ -143,3 +146,43 @@ nnoremap <leader>pu :PlugUpdate<CR>
 " ===================================================
 syntax enable                      " Включаем синтаксис
 filetype plugin indent on          " Включаем плагины для типа файлов и автоотступ
+
+" ===================================================
+" HEX MODE для .bin / .hex (управляемый)
+" ===================================================
+
+augroup HexMode
+  autocmd!
+  
+  " При открытии bin/hex — включаем бинарный режим
+  autocmd BufReadPre *.bin,*.hex let b:hexmode=1 | setlocal binary
+  
+  " После чтения — показываем через xxd
+  autocmd BufReadPost *.bin,*.hex if exists("b:hexmode") | %!xxd | endif
+  
+  " Перед сохранением — обратно в бинарь
+  autocmd BufWritePre *.bin,*.hex if exists("b:hexmode") | %!xxd -r | endif
+  
+  " После сохранения — снова hex
+  autocmd BufWritePost *.bin,*.hex if exists("b:hexmode") | %!xxd | endif
+augroup END
+
+" HEX MODE для Windows
+autocmd BufReadPost *.bin,*.hex %!xxd
+autocmd BufWritePre  *.bin,*.hex %!xxd -r
+autocmd BufWritePost *.bin,*.hex %!xxd
+
+" ===== Windows clipboard via win32yank =====
+if executable('win32yank.exe')
+  let g:clipboard = {
+        \ 'name': 'win32yank',
+        \ 'copy': {
+        \   '+': 'win32yank.exe -i --crlf',
+        \   '*': 'win32yank.exe -i --crlf',
+        \ },
+        \ 'paste': {
+        \   '+': 'win32yank.exe -o --lf',
+        \   '*': 'win32yank.exe -o --lf',
+        \ },
+        \ }
+endif
